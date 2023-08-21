@@ -572,7 +572,7 @@ BOOL CLOCK_RegisterMainWinClass(void)
 	class.lpszMenuName  = 0;
 	class.lpszClassName = "CLClass";
 
-    return RegisterClass(&class);
+	return RegisterClass(&class);
 }
 
 
@@ -583,13 +583,13 @@ BOOL CLOCK_RegisterMainWinClass(void)
 
 int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE prev, LPSTR cmdline, int show)
 {
-    MSG      msg;
-    LONG style = WS_OVERLAPPEDWINDOW;
+	MSG      msg;
+	LONG style = WS_OVERLAPPEDWINDOW;
 
-    /* Setup Globals */
-    memset(&Globals, 0, sizeof (Globals));
-    Globals.hInstance       = hInstance;
-    Globals.lpszIniFile     = "clock.ini";
+	/* Setup Globals */
+	memset(&Globals, 0, sizeof (Globals));
+	Globals.hInstance       = hInstance;
+	Globals.lpszIniFile     = "clock.ini";
 
 	/* Read application configuration */
 	CLOCK_ReadConfiguration();
@@ -602,10 +602,10 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE prev, LPSTR cmdline, int show
 	if (Globals.bMaximized) show=SW_SHOWMAXIMIZED;
 	if (Globals.bMinimized) show=SW_SHOWMINIMIZED;
 
-    Globals.hMainWnd = CreateWindow("CLClass", "Clock", style/*WS_OVERLAPPEDWINDOW*/,
+	Globals.hMainWnd = CreateWindow("CLClass", "Clock", style/*WS_OVERLAPPEDWINDOW*/,
                                      Globals.x, Globals.y,
                                      Globals.MaxX, Globals.MaxY, 0,
-                                     0, hInstance, 0);
+                                     0, Globals.hInstance, 0);
 
 	if (Globals.hMainWnd)
 	{
@@ -614,7 +614,7 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE prev, LPSTR cmdline, int show
 		InsertMenu(Globals.hSysMenu, 11, MF_BYPOSITION |(Globals.bAlwaysOnTop ? MF_CHECKED : MF_UNCHECKED), (UINT) IDM_ONTOP, "Always on &Top");
 	}
 
-    if (!CLOCK_ResetTimer())
+	if (!CLOCK_ResetTimer())
 		return FALSE;
 
 	if (Globals.bWin30Style)
