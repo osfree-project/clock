@@ -11,7 +11,7 @@ srcfiles = $(p)main$(e) $(p)winclock$(e)
 
 # defines additional options for C compiler
 ADD_COPT = -sg #-DDEBUG=1
-IMPORTS  = CHOOSEFONT     COMMDLG.15
+ADD_LINKOPT = LIB commdlg.lib
 
 CLEAN_ADD = *.mbr
 
