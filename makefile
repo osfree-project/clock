@@ -13,8 +13,6 @@ srcfiles = $(p)main$(e) $(p)winclock$(e)
 ADD_COPT = -sg #-DDEBUG=1
 ADD_LINKOPT = LIB commdlg.lib
 
-CLEAN_ADD = *.mbr
-
 !include $(%ROOT)tools/mk/appsw16.mk
 
 TARGETS = $(PATH)$(PROJ1).exe
