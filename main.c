@@ -111,7 +111,6 @@ void CLOCK_ReadConfiguration(void)
     {
       Globals.x = Globals.y = CW_USEDEFAULT;
       Globals.MaxX = Globals.MaxY = INITIAL_WINDOW_SIZE;
-//      Globals.MaxY +=GetSystemMetrics(SM_CYCAPTION);
     }
 
 }
