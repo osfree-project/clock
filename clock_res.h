@@ -31,3 +31,5 @@
 #define IDM_ONTOP                 0x313
 
 #define IDS_CLOCK                 0x10C
+
+#define IDD_CLOCK 0x100
