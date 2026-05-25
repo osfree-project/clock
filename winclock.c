@@ -65,10 +65,9 @@ static void DrawTicks(HDC dc, const POINT* centre, int radius)
         hPen=CreatePen(PS_SOLID, 2, TickColor);
         oldhPen=SelectObject(dc, hPen);
         for(t=0; t<60; t++) {
-            MoveToEx(dc,
+            MoveTo(dc,
                      centre->x + sin(t*M_PI/30)*0.95*radius,
-                     centre->y - cos(t*M_PI/30)*0.95*radius,
-                     NULL);
+                     centre->y - cos(t*M_PI/30)*0.95*radius);
 	    LineTo(dc,
 		   centre->x + sin(t*M_PI/30)*0.94*radius,
 		   centre->y - cos(t*M_PI/30)*0.94*radius);
@@ -92,10 +91,9 @@ static void DrawTicks(HDC dc, const POINT* centre, int radius)
 		DeleteObject(hPen);
 		hPen=CreatePen(PS_SOLID, 1, RGB(0,255,255));
 		oldhPen=SelectObject(dc, hPen);
-        MoveToEx(dc,
+	        MoveTo(dc,
                  centre->x + sin(t*M_PI/6)*0.95*radius-hourWidth/2,
-                 centre->y - cos(t*M_PI/6)*0.95*radius+hourWidth/2,
-                 NULL);
+                 centre->y - cos(t*M_PI/6)*0.95*radius+hourWidth/2);
         LineTo(dc,
                centre->x + sin(t*M_PI/6)*0.95*radius-hourWidth/2,
                centre->y - cos(t*M_PI/6)*0.95*radius-hourWidth/2);
@@ -112,7 +110,7 @@ static void DrawTicks(HDC dc, const POINT* centre, int radius)
 
 static void DrawHand(HDC dc,HandData* hand)
 {
-	MoveToEx(dc, hand->End.x, hand->End.y, NULL);
+	MoveTo(dc, hand->End.x, hand->End.y);
 	LineTo(dc, hand->p2.x, hand->p2.y);
 	LineTo(dc, hand->p3.x, hand->p3.y);
 	LineTo(dc, hand->p4.x, hand->p4.y);
@@ -123,7 +121,7 @@ static void DrawHands(HDC dc, BOOL bSeconds)
 {
     if (bSeconds) {
 		SelectObject(dc, CreatePen(PS_SOLID, 1, HandColor));
-		MoveToEx(dc, SecondHand.Start.x, SecondHand.Start.y, NULL);
+		MoveTo(dc, SecondHand.Start.x, SecondHand.Start.y);
 		LineTo(dc, SecondHand.End.x, SecondHand.End.y);
 		DeleteObject(SelectObject(dc, GetStockObject(NULL_PEN)));
     }
@@ -149,7 +147,6 @@ static void PositionHand(const POINT* centre, double length, double angle, HandD
 
 static void PositionHands(const POINT* centre, int radius, BOOL bSeconds)
 {
-//    SYSTEMTIME st;
     double hour, minute, second;
     struct dostime_t t;
 
@@ -208,10 +205,10 @@ void IconAnalogClock(HDC dc, int x, int y)
     PositionHands(&centre, radius, FALSE);
 
     SelectObject(dc, CreatePen(PS_SOLID, 1, HandColor));
-	MoveToEx(dc, MinuteHand.Start.x, MinuteHand.Start.y, NULL);
+	MoveTo(dc, MinuteHand.Start.x, MinuteHand.Start.y);
 	LineTo(dc, MinuteHand.End.x, MinuteHand.End.y);
 //    DrawHand(dc, &MinuteHand);
-	MoveToEx(dc, HourHand.Start.x, HourHand.Start.y, NULL);
+	MoveTo(dc, HourHand.Start.x, HourHand.Start.y);
 	LineTo(dc, HourHand.End.x, HourHand.End.y);
     //DrawHand(dc, &HourHand);
     DeleteObject(SelectObject(dc, GetStockObject(NULL_PEN)));
@@ -314,7 +311,7 @@ void FormatTime(char * szTime, BOOL bFull)
 
 HFONT SizeFont(HDC dc, int x, int y, BOOL bSeconds, const LOGFONT* font)
 {
-    SIZE extent;
+    DWORD extent;
     LOGFONT lf;
     double xscale, yscale;
     HFONT oldFont, newFont;
@@ -328,11 +325,11 @@ HFONT SizeFont(HDC dc, int x, int y, BOOL bSeconds, const LOGFONT* font)
     lf.lfHeight = -20;
 
     oldFont = SelectObject(dc, CreateFontIndirect(&lf));
-    GetTextExtentPoint(dc, szTime, chars, &extent);
+    extent=GetTextExtent(dc, szTime, chars);
     DeleteObject(SelectObject(dc, oldFont));
 
-    xscale = (double)x/extent.cx;
-    yscale = (double)y/extent.cy;
+    xscale = (double)x/LOWORD(extent);
+    yscale = (double)y/HIWORD(extent);
     lf.lfHeight *= min(xscale, yscale);    
     newFont = CreateFontIndirect(&lf);
 
@@ -342,39 +339,38 @@ HFONT SizeFont(HDC dc, int x, int y, BOOL bSeconds, const LOGFONT* font)
 
 void DigitalClock(HDC dc, int x, int y, BOOL bSeconds)
 {
-    SIZE extent;
-    HFONT oldFont;
-    char szTime[255]="";
-    char szDate[255]="";
-    int tchars;
-    int dchars;
+	DWORD extent;
+	HFONT oldFont;
+	char szTime[255]="";
+	char szDate[255]="";
+	int tchars;
+	int dchars;
 	int upshift = 0;
 	BOOL shift = FALSE;
 
 	FormatDate(szDate, TRUE);
-    dchars=lstrlen(szDate);
+	dchars=lstrlen(szDate);
 
 	FormatTime(szTime, TRUE);
-    tchars=lstrlen(szTime);
+	tchars=lstrlen(szTime);
 
+	oldFont = SelectObject(dc, Globals.hFont);
 
-    oldFont = SelectObject(dc, Globals.hFont);
-
-    GetTextExtentPoint(dc, szTime, tchars, &extent);
-    if (extent.cy>63) {
+	GetTextExtent(dc, szTime, tchars);
+	if (HIWORD(extent)>63) {
 		shift=TRUE;
 	}
 	
-	if (Globals.bDate) upshift=extent.cy/2;
+	if (Globals.bDate) upshift=HIWORD(extent)/2;
 	
 	SetBkColor(dc, BackgroundColor);
-    SetBkMode(dc, TRANSPARENT);
+	SetBkMode(dc, TRANSPARENT);
 
 	if (shift) {
 		SetTextColor(dc, RGB(255,255,255));
-		TextOut(dc, (x - extent.cx)/2-2 , (y - extent.cy)/2-2 - upshift , szTime, tchars);
+		TextOut(dc, (x - LOWORD(extent))/2-2 , (y - HIWORD(extent))/2-2 - upshift , szTime, tchars);
 		SetTextColor(dc, ShadowColor);
-		TextOut(dc, (x - extent.cx)/2+2 , (y - extent.cy)/2+2 - upshift , szTime, tchars);
+		TextOut(dc, (x - LOWORD(extent))/2+2 , (y - HIWORD(extent))/2+2 - upshift , szTime, tchars);
 	}
 
 	if (shift)
@@ -384,17 +380,17 @@ void DigitalClock(HDC dc, int x, int y, BOOL bSeconds)
 		SetTextColor(dc, HandColor);
 	}
 	
-    TextOut(dc, (x - extent.cx)/2, (y - extent.cy)/2 - upshift, szTime, tchars);
+	TextOut(dc, (x - LOWORD(extent))/2, (y - HIWORD(extent))/2 - upshift, szTime, tchars);
 
 	if (Globals.bDate)
 	{
 		SelectObject(dc, Globals.hDateFont);
 		SetTextColor(dc, HandColor);
-		GetTextExtentPoint(dc, szDate, dchars, &extent);
-		TextOut(dc, (x - extent.cx)/2, y/2, szDate, dchars);
+		extent=GetTextExtent(dc, szDate, dchars);
+		TextOut(dc, (x - LOWORD(extent))/2, y/2, szDate, dchars);
 	}
 
-    SelectObject(dc, oldFont);
+	SelectObject(dc, oldFont);
 }
 
 void IconDigitalClock(HDC dc, int x, int y)

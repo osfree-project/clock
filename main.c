@@ -1,12 +1,11 @@
 /*
- * Clock
+ * osFree Janus Clock
  *
  * Copyright 1998 Marcel Baur <mbaur@g26.ethz.ch>
  *
  * Clock is partially based on
  * - Program Manager by Ulrich Schmied
  * - rolex.c by Jim Peterson
- *
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,7 +26,6 @@
 #include <string.h>
 
 #include "windows.h"
-//#include "commctrl.h"
 #include "commdlg.h"
 #include "shellapi.h"
 
@@ -42,7 +40,6 @@ CLOCK_GLOBALS Globals;
 void CLOCK_SaveConfiguration(void)
 {
 	char buffer[100];
-    //RECT rect;
     WritePrivateProfileString("Clock", "Maximized",
                               Globals.bMaximized ? "1" : "0",
                               Globals.lpszIniFile);
@@ -54,26 +51,24 @@ void CLOCK_SaveConfiguration(void)
                               Globals.logfont.lfFaceName,
                               Globals.lpszIniFile);
 
-//    GetWindowRect(Globals.hMainWnd, &rect);
-
     wsprintf(buffer, "%d,%d,%d,%d", Globals.x, Globals.y, Globals.x+Globals.MaxX, Globals.y+Globals.MaxY);
     WritePrivateProfileString("Clock", "Position", buffer, Globals.lpszIniFile);
 }
 
 void CLOCK_ReadConfiguration(void)
 {
-    int  right, bottom;
+	int  right, bottom;
 	char buffer[100];
 	DWORD dwVersion;
 	BYTE bMajorVersion;
 	BYTE bMinorVersion;
 
-    /* Read Options from `win.ini' */
+	/* Read Options from `win.ini' */
 	GetProfileString("intl", "s1159", "AM", Globals.s1159, sizeof(Globals.s1159));
 	GetProfileString("intl", "s2359", "PM", Globals.s2359, sizeof(Globals.s2359));
 	GetProfileString("intl", "sTime", ":", Globals.sTime, sizeof(Globals.sTime));
-    Globals.iTime=GetProfileInt("intl", "iTime", 0);
-    Globals.iTLZero=GetProfileInt("intl", "iTLZero", 0);
+	Globals.iTime=GetProfileInt("intl", "iTime", 0);
+	Globals.iTLZero=GetProfileInt("intl", "iTLZero", 0);
 	GetProfileString("intl", "sDate", "/", Globals.sDate, sizeof(Globals.sDate));
 	GetProfileString("intl", "sShortDate", "MM/dd/yy", Globals.sShortDate, sizeof(Globals.sShortDate));
 
@@ -226,17 +221,35 @@ static VOID CLOCK_ChooseFont(VOID)
 {
     LOGFONT lf;
     CHOOSEFONT cf;
+	CHOOSEFONTPROC pChooseFont;
+	HINSTANCE hCommDlg;
+	WORD oldErrorMode;
 
+	/* Try shell.dll first (@todo Does'n work under Real Mode Windows 3.0) */
+	oldErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX);
+	hCommDlg = LoadLibrary("COMMDLG");
+	SetErrorMode(oldErrorMode);
+	if (hCommDlg>=HINSTANCE_ERROR)
+	{
+		pChooseFont = (CHOOSEFONTPROC)GetProcAddress(hCommDlg, "ChooseFont");
+		if (pChooseFont)
+		{
     memset(&cf, 0, sizeof(cf));
     lf = Globals.logfont;
     cf.lStructSize = sizeof(cf);
     cf.hwndOwner = Globals.hMainWnd;
     cf.lpLogFont = &lf;
     cf.Flags = CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT;// | CF_NOVERTFONTS;
-    if (ChooseFont(&cf)) {
+    if (pChooseFont(&cf)) {
 	Globals.logfont = lf;
 	CLOCK_ResetFont();
     }
+			FreeLibrary(hCommDlg);
+			return ;
+		}
+	FreeLibrary(hCommDlg);
+	}
+
 }
 
 /***********************************************************************
@@ -281,6 +294,39 @@ static VOID CLOCK_ToggleOnTop(VOID)
     }
     CLOCK_UpdateMenuCheckmarks();
 }
+
+/***********************************************************************
+ *
+ *           CLOCK_About
+ */
+static VOID CLOCK_About(VOID)
+{
+	char szApp[MAX_STRING_LEN];
+	char szAppRelease[MAX_STRING_LEN];
+	HINSTANCE hShell;
+	SHELLABOUT pShellAbout;
+	WORD oldErrorMode;
+
+	LoadString(Globals.hInstance, IDS_CLOCK, szApp, sizeof(szApp));
+	lstrcpy(szAppRelease, szApp);
+
+	/* Try shell.dll first (@todo Does'n work under Real Mode Windows 3.0) */
+	oldErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX);
+	hShell = LoadLibrary("SHELL");
+	SetErrorMode(oldErrorMode);
+	if (hShell>=HINSTANCE_ERROR)
+	{
+		pShellAbout = (SHELLABOUT)GetProcAddress(hShell, "ShellAbout");
+		if (pShellAbout)
+		{
+			BOOL bRet = pShellAbout(Globals.hMainWnd, szApp, szAppRelease, 0);
+			FreeLibrary(hShell);
+			return ;
+		}
+	FreeLibrary(hShell);
+	}
+}
+
 /***********************************************************************
  *
  *           CLOCK_MenuCommand
@@ -290,19 +336,16 @@ static VOID CLOCK_ToggleOnTop(VOID)
 
 static int CLOCK_MenuCommand (WPARAM wParam)
 {
-    char szApp[MAX_STRING_LEN];
-    char szAppRelease[MAX_STRING_LEN];
-
     switch (wParam) {
         /* switch to analog */
-        case IDM_ANALOG: {
+	case IDM_ANALOG: {
 			Globals.bAnalog = TRUE;
 			CLOCK_UpdateMenuCheckmarks();
 			CLOCK_UpdateWindowCaption();
 			CLOCK_ResetTimer();
 			InvalidateRect(Globals.hMainWnd, NULL, FALSE);
-            break;
-        }
+			break;
+	}
             /* switch to digital */
         case IDM_DIGITAL: {
             Globals.bAnalog = FALSE;
@@ -315,8 +358,8 @@ static int CLOCK_MenuCommand (WPARAM wParam)
         }
             /* change font */
         case IDM_FONT: {
-            CLOCK_ChooseFont();
-			InvalidateRect(Globals.hMainWnd, NULL, FALSE);
+		CLOCK_ChooseFont();
+		InvalidateRect(Globals.hMainWnd, NULL, FALSE);
             break;
         }
             /* hide title bar */
@@ -349,9 +392,7 @@ static int CLOCK_MenuCommand (WPARAM wParam)
         }
             /* show "about" box */
         case IDM_ABOUT: {
-            LoadString(Globals.hInstance, IDS_CLOCK, szApp, sizeof(szApp));
-            lstrcpy(szAppRelease, szApp);
-            ShellAbout(Globals.hMainWnd, szApp, szAppRelease, 0);
+		CLOCK_About();
             break;
         }
     }
@@ -419,18 +460,16 @@ static VOID CLOCK_Paint(HWND hWnd)
 
     bmOld = SelectObject(dcMem, bmMem);
 
-    SetViewportOrgEx(dcMem, -rc.left, -rc.top, NULL);
+    SetViewportOrg(dcMem, -rc.left, -rc.top);
 
     hBrush=CreateSolidBrush(BackgroundColor);
     /* Erase the background */
     FillRect(dcMem, &rc,  hBrush);
     DeleteObject(hBrush);
-
     if(Globals.bAnalog)
 		AnalogClock(dcMem, rc.right-rc.left, rc.bottom-rc.top, Globals.bSeconds);
     else
 		DigitalClock(dcMem, rc.right-rc.left, rc.bottom-rc.top, Globals.bSeconds);
-
     /* Blit the changes to the screen */
     BitBlt(dc, 
 	   rc.left, rc.top,
@@ -452,7 +491,7 @@ static VOID CLOCK_Paint(HWND hWnd)
  *           CLOCK_WndProc
  */
 
-static LRESULT WINAPI CLOCK_WndProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI CLOCK_WndProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
 	/* L button drag moves the window if no title mode */
@@ -565,7 +604,7 @@ BOOL CLOCK_RegisterMainWinClass(void)
 	class.cbClsExtra    = 0;
 	class.cbWndExtra    = 0;
 	class.hInstance     = Globals.hInstance;
-	class.hIcon         = 0;//LoadIcon(0, (LPCSTR)IDI_APPLICATION);
+	class.hIcon         = 0;
 	class.hCursor       = LoadCursor(0, (LPCSTR)IDC_ARROW);
 	class.hbrBackground = 0;
 	class.lpszMenuName  = 0;
@@ -601,11 +640,12 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE prev, LPSTR cmdline, int show
 	if (Globals.bMaximized) show=SW_SHOWMAXIMIZED;
 	if (Globals.bMinimized) show=SW_SHOWMINIMIZED;
 
-	Globals.hMainWnd = CreateWindow("CLClass", "Clock", style/*WS_OVERLAPPEDWINDOW*/,
+	Globals.hMainWnd = CreateWindow("CLClass", "Clock", style,
                                      Globals.x, Globals.y,
                                      Globals.MaxX, Globals.MaxY, 0,
                                      0, Globals.hInstance, 0);
 
+	//@todo move Always on top to resources
 	if (Globals.hMainWnd)
 	{
 		Globals.hSysMenu = GetSystemMenu(Globals.hMainWnd, FALSE);

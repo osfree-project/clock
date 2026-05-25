@@ -20,6 +20,7 @@
 
 #include "colors.h"
 #include "clock_res.h"
+#include "commdlg.h"
 
 #define MAX_STRING_LEN      255
 #define DEFAULTICON OIC_WINLOGO
@@ -67,7 +68,5 @@ typedef struct
 
 extern CLOCK_GLOBALS Globals;
 
-int WINAPI ShellAbout(HWND hWnd, LPCSTR lpszCaption, LPCSTR lpszAboutText,
-                HICON hIcon);
-
-
+typedef BOOL (WINAPI *SHELLABOUT)(HWND hWnd, LPCSTR lpszCaption, LPCSTR lpszAboutText, HICON hIcon);
+typedef BOOL (WINAPI *CHOOSEFONTPROC)(LPCHOOSEFONT lpcf);

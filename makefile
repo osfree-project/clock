@@ -10,8 +10,10 @@ DESC = Windows clock
 srcfiles = $(p)main$(e) $(p)winclock$(e)
 
 # defines additional options for C compiler
-ADD_COPT = -sg #-DDEBUG=1
-ADD_LINKOPT = LIB commdlg.lib
+ADD_COPT = -sg -0
+#ADD_LINKOPT = LIB commdlg.lib
+
+EXPORTS = CLOCK_WndProc.1
 
 !include $(%ROOT)tools/mk/appsw16.mk
 
