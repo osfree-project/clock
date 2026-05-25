@@ -1,4 +1,4 @@
-# osFree Clock
+# osFree Janus Clock
 
 ![Language: C](https://img.shields.io/badge/language-C-blue)
 ![License: LGPL-2.1](https://img.shields.io/badge/license-LGPL%202.1-green)
@@ -84,6 +84,11 @@ See [LICENSE](LICENSE) for more details.
 ## 👤 Copyright
 
 *   Copyright (C) 1998 Marcel Baur
+
+    Clock is partially based on:
+    - Program Manager by Ulrich Schmied
+    - rolex.c by Jim Peterson
+
 *   Copyright (C) 2002 Sylvain Petreolle
 *   Copyright (C) osFree project
 
