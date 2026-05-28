@@ -6,7 +6,7 @@
 PROJ  = clock1
 PROJ1 = clock
 TRGT = $(PROJ1).exe
-DESC = Windows clock
+DESC = osFree Janus Clock
 srcfiles = $(p)main$(e) $(p)winclock$(e)
 
 # defines additional options for C compiler
@@ -22,6 +22,6 @@ TARGETS = $(PATH)$(PROJ1).exe
 
 .ico: $(MYDIR)res
 
-$(PATH)$(PROJ1).exe: $(PATH)$(PROJ).exe $(MYDIR)clock.rc
+$(PATH)$(PROJ1).exe: $(PATH)$(PROJ).exe $(MYDIR)$(PROJ1).rc
  @$(SAY) RESCMP   $^. $(LOG)
  @$(RC) -q -30 -bt=windows $]@ $[@ -fe=$@ -fo=$^@ -i=$(MYDIR) -i=$(%WATCOM)$(SEP)h$(SEP)win
