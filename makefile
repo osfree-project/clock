@@ -1,27 +1,17 @@
 #
-# A Makefile for WinOS/2 Program Manager
-# (c) osFree project,
+# A Makefile for osFree Janus Clock
+# (c) osFree project
 #
 
-PROJ  = clock1
-PROJ1 = clock
-TRGT = $(PROJ1).exe
-DESC = osFree Janus Clock
-srcfiles = $(p)main$(e) $(p)winclock$(e)
+DESCRIPTION = osFree Janus Clock
+SOURCES = main winclock
+TARGET_API = WIN
+TARGET_VERSION= 310
+EXPORTS = CLOCK_WndProc
 
 # defines additional options for C compiler
-ADD_COPT = -sg -0
-#ADD_LINKOPT = LIB commdlg.lib
-
-EXPORTS = CLOCK_WndProc.1
-
-!include $(%ROOT)tools/mk/appsw16.mk
-
-TARGETS = $(PATH)$(PROJ1).exe
+ADD_COPT = -sg
 
 
-.ico: $(MYDIR)res
+!include $(%ROOT)tools/mk/build.mk
 
-$(PATH)$(PROJ1).exe: $(PATH)$(PROJ).exe $(MYDIR)$(PROJ1).rc
- @$(SAY) RESCMP   $^. $(LOG)
- @$(RC) -q -30 -bt=windows $]@ $[@ -fe=$@ -fo=$^@ -i=$(MYDIR) -i=$(%WATCOM)$(SEP)h$(SEP)win
