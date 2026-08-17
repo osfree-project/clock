@@ -5,7 +5,6 @@
 
 DESCRIPTION = osFree Janus Clock
 SOURCES = main winclock
-TARGET_API = WIN
 TARGET_VERSION= 310
 EXPORTS = CLOCK_WndProc
 
