@@ -3,8 +3,7 @@
 # (c) osFree project
 #
 
-DESCRIPTION = osFree Janus Clock
-SOURCES = main winclock
+DESCRIPTION = Janus Clock
 TARGET_VERSION= 310
 EXPORTS = CLOCK_WndProc
 
