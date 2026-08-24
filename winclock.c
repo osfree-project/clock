@@ -3,6 +3,8 @@
  *
  *  Copyright 1998 by Marcel Baur <mbaur@g26.ethz.ch>
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  *  This file is based on  rolex.c  by Jim Peterson.
  *
  *  I just managed to move the relevant parts into the Clock application
